@@ -1,7 +1,6 @@
 # 2ProyectoPP - Sistema de Microservicios
 
 Desarrollado por Kevin Beita , Greivin Narvaez, Yutaro Cubero, Francisco Araya para el curso Paradigmas de Programacion.
-Sistema de gestión de agenda basado en microservicios con Spring Boot, Eureka Server, API Prolog y Frontend.
 
 ## 📋 Arquitectura del Sistema
 
