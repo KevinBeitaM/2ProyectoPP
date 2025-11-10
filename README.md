@@ -201,11 +201,6 @@ docker build -t <nombre_imagen> . --no-cache
 - **Docker** - Contenedorización
 - **Maven** - Gestión de dependencias
 
-## 👥 Autor
-
-Kevin Beita - [@KevinBeitaM](https://github.com/KevinBeitaM)
-
-## 📄 Licencia
 
 Este proyecto es para fines educativos.
 
