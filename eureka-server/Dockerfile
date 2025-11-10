@@ -1,4 +1,3 @@
-
 # =========================
 # STAGE 1: BUILD (Maven)
 # =========================
@@ -6,9 +5,9 @@ FROM eclipse-temurin:21-jdk-jammy AS build
 ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-      maven ca-certificates  \
+RUN apt-get update \ 
+ && apt-get install -y --no-install-recommends \ 
+      maven ca-certificates  \ 
  && rm -rf /var/lib/apt/lists/*
 
 # Cachear dependencias de Maven
@@ -33,7 +32,7 @@ COPY --from=build /workspace/target/*.jar /opt/app/app.jar
 RUN useradd -ms /bin/bash appuser
 USER appuser
 
-EXPOSE 8081F
+EXPOSE 8761
 ENTRYPOINT ["java","-jar","/opt/app/app.jar"]
 #docker network create red_paradigmas
 #docker  build -t  eureka .
@@ -41,4 +40,3 @@ ENTRYPOINT ["java","-jar","/opt/app/app.jar"]
 #docker login
 #docker tag micro  allamchz/eureka:latest
 #docker push allamchz/eureka:latest
-
