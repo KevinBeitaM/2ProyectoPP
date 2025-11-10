@@ -1,0 +1,46 @@
+# ============================================
+# DOCKER COMPOSE - Eureka Server
+# ============================================
+# Service Discovery para el sistema de microservicios
+#
+# REQUISITOS PREVIOS:
+# 1. Crear la red: docker network create red_paradigmas
+#
+# USO:
+# docker-compose up --build    → Construir y levantar
+# docker-compose down          → Detener
+# docker-compose logs -f       → Ver logs
+
+version: '3.8'
+
+services:
+  eureka:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    image: eureka:latest
+    container_name: eureka-server
+    
+    ports:
+      - "8761:8761"
+    
+    # Conectar a la red externa compartida
+    networks:
+      - red_paradigmas
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    
+    # Reinicio automático
+    restart: unless-stopped
+
+# Usar red externa (debe existir previamente)
+networks:
+  red_paradigmas:
+    external: true

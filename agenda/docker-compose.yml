@@ -1,0 +1,142 @@
+# ============================================
+# DOCKER COMPOSE - Agenda API
+# ============================================
+# API REST principal del sistema
+#
+# REQUISITOS PREVIOS:
+# 1. Crear la red: docker network create red_paradigmas
+# 2. Eureka Server debe estar corriendo
+# 3. API Prolog debe estar corriendo
+# 4. MySQL debe estar corriendo (incluido en este archivo)
+#
+# USO:
+# docker-compose up --build    → Construir y levantar
+# docker-compose down          → Detener
+# docker-compose logs -f       → Ver logs
+
+version: '3.8'
+
+services:
+
+  # ==========================================
+  # MYSQL - Base de Datos
+  # ==========================================
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-server
+    
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: paradigmas
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    
+    ports:
+      - "3306:3306"
+    
+    volumes:
+      - mysql-data:/var/lib/mysql
+    
+    # Conectar a la red externa compartida
+    networks:
+      - red_paradigmas
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p12345678"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+    
+    # Reinicio automático
+    restart: unless-stopped
+
+  # ==========================================
+  # AGENDA API - Servicio Principal
+  # ==========================================
+  agenda:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    image: agenda_api:latest
+    container_name: agenda-api
+    
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    
+    ports:
+      - "8081:8081"
+    
+    # Conectar a la red externa compartida
+    networks:
+      - red_paradigmas
+    
+    # Depende de MySQL (local), Eureka y API Prolog (externos)
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-healthcheck:
+        condition: service_completed_successfully
+      prolog-healthcheck:
+        condition: service_completed_successfully
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    
+    # Reinicio automático
+    restart: unless-stopped
+
+  # ==========================================
+  # HELPER: Verificar que Eureka está listo
+  # ==========================================
+  eureka-healthcheck:
+    image: curlimages/curl:latest
+    container_name: eureka-healthcheck-agenda
+    networks:
+      - red_paradigmas
+    command: >
+      sh -c "
+      echo 'Esperando a que Eureka esté disponible...';
+      until curl -f http://eureka:8761/actuator/health; do
+        echo 'Eureka no está listo - esperando...';
+        sleep 5;
+      done;
+      echo 'Eureka está listo!';
+      "
+    restart: "no"
+
+  # ==========================================
+  # HELPER: Verificar que API Prolog está listo
+  # ==========================================
+  prolog-healthcheck:
+    image: curlimages/curl:latest
+    container_name: prolog-healthcheck-agenda
+    networks:
+      - red_paradigmas
+    command: >
+      sh -c "
+      echo 'Esperando a que API Prolog esté disponible...';
+      until curl -f http://api-prolog:8080/api/health; do
+        echo 'API Prolog no está listo - esperando...';
+        sleep 5;
+      done;
+      echo 'API Prolog está listo!';
+      "
+    restart: "no"
+
+# Volúmenes para persistencia
+volumes:
+  mysql-data:
+    driver: local
+
+# Usar red externa (debe existir previamente)
+networks:
+  red_paradigmas:
+    external: true
