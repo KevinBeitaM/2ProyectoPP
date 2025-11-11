@@ -10,7 +10,7 @@ El proyecto consta de los siguientes componentes:
 - **MySQL** (Puerto 3306): Base de datos
 - **Prolog API** (Puerto 8080): API de lógica con Prolog
 - **Agenda API** (Puerto 8081): API REST principal
-- **Frontend**: Interfaz de usuario (React/Angular)
+- **Frontend**: Interfaz de usuario
 
 ## 🔧 Prerequisitos
 
